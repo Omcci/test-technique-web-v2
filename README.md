@@ -14,7 +14,7 @@ Un équipement est défini par :
 - Une précision sur le nom de l'équipement
 - Un type d'équipement (ex: ascenseur électrique, chaudière gaz murale, etc.)
 - Une marque (ex: Schindler, Thyssenkrupp, etc.)
-- Un modèle (ex: KONE, Thyssenkrupp, etc.)
+- Un modèle
 - Une date de création
 - Une date de modification
 
