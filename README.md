@@ -65,6 +65,8 @@ Exemples de type d'équipement :
   - Sélection hiérarchique du type d'équipement (dropdowns en cascade)
   - Champs marque et modèle (texte libre)
   - Validation des données
+- **Supprimer un équipement** :
+  - Confirmation de la suppression
 
 ## Consignes techniques
 
