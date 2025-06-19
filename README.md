@@ -47,6 +47,8 @@ Exemples de type d'équipement :
     - Centrale d'alarme ( catégorie )
       - Centrale d'alarme incendie conventionnelle ( sous-catégorie )
 
+Un CSV est fourni avec plusieurs exemples de types d'équipements.
+
 ### API - Fonctionnalités CRUD
 
 #### Mutations
@@ -72,8 +74,9 @@ Exemples de type d'équipement :
 
 - **Langage** : TypeScript
 - **Base de données** : PostgreSQL
+- **Framework Frontend**: React ou React meta-framework (Next.js, Remix, etc.)
 - **Architecture** : Libre
-- **Frameworks**: Libre
+- **Framework Backend**: Libre
 - **ORM**: Libre
 - **Containerisation**: Libre
 - **Librairies**: Libre
@@ -83,13 +86,6 @@ Exemples de type d'équipement :
 - **Conventions**: Libre
 
 Lors du briefing, nous discuterons des choix techniques et des motivations de ces choix.
-
-### Recommandations
-
-- Gestion d'erreurs appropriée
-- Validation des données
-- Code structuré et maintenable
-- Tests unitaires et/ou intégration appréciés
 
 ## Bonus
 
