@@ -99,6 +99,10 @@ Lors du briefing, nous discuterons des choix techniques et des motivations de ce
 - **Performance Base de donnée et API**
 - **Performance Interface**
 
+### Enrichissement par IA
+
+- Détection du domaine, type, catégorie et sous-catégorie d'un équipement à partir des caractéristiques de l'équipement
+
 ## Livrables attendus
 
 **Code source** : Repository Git avec README.md
