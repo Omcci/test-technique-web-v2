@@ -16,6 +16,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@nestjs/apollo": "^12.2.2",
     "@nestjs/common": "^10.4.19",
     "@nestjs/config": "^3.3.0",
     "@nestjs/core": "^10.4.19",
