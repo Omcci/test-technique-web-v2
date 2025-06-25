@@ -2,6 +2,9 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
+import { EquipmentResolver } from './infrastructure/graphql/resolvers/equipment.resolver';
+import { EquipmentService } from './application/services/equipment.service';
+import { EquipmentRepository } from './infrastructure/database/repositories/equipment.repository';
 
 @Module({
     imports: [
@@ -12,6 +15,10 @@ import { join } from 'path';
         }),
     ],
     providers: [
+        EquipmentResolver,
+        EquipmentService,
+        EquipmentRepository,
+        { provide: 'IEquipmentRepository', useExisting: EquipmentRepository },
     ],
 })
 export class AppModule { }
