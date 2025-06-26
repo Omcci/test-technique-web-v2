@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: equipment-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - postgres
+    env_file:
+      - ./backend/.env
+    command: npm run start:dev
+
+  postgres:
+    image: postgres:15
+    container_name: equipment-postgres
+    environment:
+      POSTGRES_DB: equipment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: equipment-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@equipment.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
