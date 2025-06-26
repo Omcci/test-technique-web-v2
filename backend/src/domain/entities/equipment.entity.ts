@@ -1,4 +1,5 @@
 import { Field, ObjectType, ID } from '@nestjs/graphql';
+import { randomUUID } from 'crypto';
 
 @ObjectType()
 export class Equipment {
@@ -35,7 +36,7 @@ export class Equipment {
 
         return new Equipment({
             ...data,
-            id: crypto.randomUUID(),
+            id: randomUUID(),
             createdAt: new Date(),
             updatedAt: new Date(),
         });

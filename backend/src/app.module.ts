@@ -5,6 +5,7 @@ import { join } from 'path';
 import { EquipmentResolver } from './infrastructure/graphql/resolvers/equipment.resolver';
 import { EquipmentService } from './application/services/equipment.service';
 import { EquipmentRepository } from './infrastructure/database/repositories/equipment.repository';
+import { PrismaService } from './infrastructure/database/prisma.service';
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { EquipmentRepository } from './infrastructure/database/repositories/equi
         EquipmentResolver,
         EquipmentService,
         EquipmentRepository,
+        PrismaService,
         { provide: 'IEquipmentRepository', useExisting: EquipmentRepository },
     ],
 })
