@@ -14,9 +14,27 @@ services:
     env_file:
       - ./backend/.env
     command: npm run start:dev
+    networks:
+      - equipment-network
+
+  frontend:
+    build: ./frontend
+    container_name: equipment-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: "http://localhost:3000"
+    command: npm run dev -- --host 0.0.0.0
+    networks:
+      - equipment-network
 
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: equipment-postgres
     environment:
       POSTGRES_DB: equipment_db
@@ -27,6 +45,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - equipment-network
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -39,6 +59,12 @@ services:
     depends_on:
       - postgres
     restart: unless-stopped
+    networks:
+      - equipment-network
 
 volumes:
   postgres_data:
+
+networks:
+  equipment-network:
+    driver: bridge

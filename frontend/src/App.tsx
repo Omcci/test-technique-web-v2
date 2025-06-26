@@ -1,35 +1,34 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { EquipmentList } from './components/equipment/EquipmentList';
+import { CreateEquipmentDialog } from './components/equipment/CreateEquipmentDialog';
+import { useState } from 'react';
+import { Toaster } from "@/components/ui/sonner"
+
+
+const queryClient = new QueryClient();
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen min-w-screen bg-gray-50">
+        <div className="w-full px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+              Equipment Management
+            </h1>
+            <EquipmentList onAddEquipment={() => setIsCreateDialogOpen(true)} />
+            <CreateEquipmentDialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+            />
+          </div>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      <Toaster />
+    </QueryClientProvider>
+  );
 }
 
-export default App
+export default App;
