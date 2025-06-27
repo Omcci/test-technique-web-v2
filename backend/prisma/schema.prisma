@@ -8,10 +8,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model EquipmentType {
+  id        String   @id @default(cuid())
+  name      String
+  level     Int      @default(1)
+  parentId  String?
+  parent    EquipmentType? @relation("EquipmentTypeHierarchy", fields: [parentId], references: [id])
+  children  EquipmentType[] @relation("EquipmentTypeHierarchy")
+  equipments Equipment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("equipment_types")
+}
+
 model Equipment {
   id              String   @id @default(cuid())
   name            String
   equipmentTypeId String
+  equipmentType   EquipmentType @relation(fields: [equipmentTypeId], references: [id])
   brand           String
   model           String
   createdAt       DateTime @default(now())

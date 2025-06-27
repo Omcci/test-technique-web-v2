@@ -17,12 +17,25 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type EquipmentType {
+  id: ID!
+  name: String!
+  level: Int!
+  parentId: String
+  parent: EquipmentType
+  children: [EquipmentType!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type Query {
   equipments: [Equipment!]!
+  equipmentTypes: [EquipmentType!]!
 }
 
 type Mutation {
   createEquipment(input: CreateEquipmentInput!): Equipment!
+  createEquipmentType(input: CreateEquipmentTypeInput!): EquipmentType!
 }
 
 input CreateEquipmentInput {
@@ -30,4 +43,10 @@ input CreateEquipmentInput {
   equipmentTypeId: String!
   brand: String!
   model: String!
+}
+
+input CreateEquipmentTypeInput {
+  name: String!
+  level: Int
+  parentId: String
 }
