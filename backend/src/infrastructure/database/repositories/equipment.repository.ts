@@ -17,7 +17,10 @@ export class EquipmentRepository implements IEquipmentRepository {
                 model: equipment.model,
                 createdAt: equipment.createdAt,
                 updatedAt: equipment.updatedAt,
-            }
+            },
+            include: {
+                equipmentType: true,
+            },
         })
         return new Equipment(data);
     }
@@ -26,7 +29,10 @@ export class EquipmentRepository implements IEquipmentRepository {
         const equipments = await this.prisma.equipment.findMany({
             orderBy: {
                 createdAt: 'desc'
-            }
+            },
+            include: {
+                equipmentType: true,
+            },
         })
         return equipments.map((equipment: Equipment) => new Equipment(equipment));
     }

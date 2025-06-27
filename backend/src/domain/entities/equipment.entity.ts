@@ -1,5 +1,6 @@
 import { Field, ObjectType, ID } from '@nestjs/graphql';
 import { randomUUID } from 'crypto';
+import { EquipmentType } from './equipment-type.entity';
 
 @ObjectType()
 export class Equipment {
@@ -11,6 +12,9 @@ export class Equipment {
 
     @Field()
     equipmentTypeId: string;
+
+    @Field(() => EquipmentType, { nullable: true })
+    equipmentType?: EquipmentType;
 
     @Field()
     brand: string;
