@@ -9,7 +9,8 @@
     "test": "jest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "codegen": "graphql-codegen --config codegen.yml"
+    "codegen": "graphql-codegen --config codegen.yml",
+    "import:equipment-types": "ts-node src/scripts/import-equipment-types.ts"
   },
   "keywords": [],
   "author": "",
