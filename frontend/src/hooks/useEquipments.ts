@@ -70,6 +70,46 @@ const CREATE_EQUIPMENT = `
   }
 `;
 
+const UPDATE_EQUIPMENT = `
+  mutation UpdateEquipment($input: UpdateEquipmentInput!) {
+    updateEquipment(input: $input) {
+      id
+      name
+      brand
+      model
+      equipmentTypeId
+      equipmentType {
+        id
+        name
+        level
+        parent {
+          id
+          name
+          level
+          parent {
+            id
+            name
+            level
+            parent {
+              id
+              name
+              level
+            }
+          }
+        }
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const DELETE_EQUIPMENT = `
+  mutation DeleteEquipment($id: String!) {
+    deleteEquipment(id: $id)
+  }
+`;
+
 export function useEquipments() {
   return useQuery({
     queryKey: ['equipments'],
@@ -87,6 +127,34 @@ export function useCreateEquipment() {
     mutationFn: async (input: CreateEquipmentInput): Promise<Equipment> => {
       const data = await graphqlRequest(CREATE_EQUIPMENT, { input });
       return data.createEquipment;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipments'] });
+    },
+  });
+}
+
+export function useUpdateEquipment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdateEquipmentInput): Promise<Equipment> => {
+      const data = await graphqlRequest(UPDATE_EQUIPMENT, { input });
+      return data.updateEquipment;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipments'] });
+    },
+  });
+}
+
+export function useDeleteEquipment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string): Promise<boolean> => {
+      const data = await graphqlRequest(DELETE_EQUIPMENT, { id });
+      return data.deleteEquipment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['equipments'] });

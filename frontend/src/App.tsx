@@ -8,7 +8,6 @@ import { Toaster } from "@/components/ui/sonner"
 const queryClient = new QueryClient();
 
 function App() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -16,11 +15,7 @@ function App() {
         <div className="w-full px-4 py-8">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold mb-6">Equipment Management</h1>
-            <EquipmentList onAddEquipment={() => setIsCreateDialogOpen(true)} />
-            <CreateEquipmentDialog
-              open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
-            />
+            <EquipmentList />
           </div>
         </div>
       </div>
