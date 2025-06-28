@@ -10,6 +10,9 @@ import {
     DialogTitle,
 } from '../ui/dialog';
 import { toast } from "sonner"
+import { useEquipmentTypes } from '@/hooks/useEquipmentTypes';
+import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from '../ui/select';
+import { getEquipmentTypeHierarchy } from '@/lib/utils';
 
 
 interface CreateEquipmentDialogProps {
@@ -26,6 +29,7 @@ export function CreateEquipmentDialog({ open, onOpenChange }: CreateEquipmentDia
     });
 
     const createEquipment = useCreateEquipment();
+    const { data: equipmentTypes, isLoading: isLoadingTypes } = useEquipmentTypes();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,14 +62,38 @@ export function CreateEquipmentDialog({ open, onOpenChange }: CreateEquipmentDia
                         />
                     </div>
                     <div>
-                        <Label htmlFor="equipmentTypeId">Equipment Type ID</Label>
-                        <Input
-                            id="equipmentTypeId"
+                        <Label htmlFor="equipmentType">Equipment Type</Label>
+                        <Select
                             value={formData.equipmentTypeId}
-                            onChange={(e) => setFormData({ ...formData, equipmentTypeId: e.target.value })}
-                            required
-                            className="mt-2 border-gray-300 text-gray-700 hover:bg-gray-50"
-                        />
+                            onValueChange={(value) => setFormData({ ...formData, equipmentTypeId: value })}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select equipment type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {isLoadingTypes ? (
+                                    <SelectItem value="loading" disabled>Loading...</SelectItem>
+                                ) : equipmentTypes?.length === 0 ? (
+                                    <SelectItem value="no-data" disabled>No equipment types available</SelectItem>
+                                ) : (
+                                    equipmentTypes?.map((type) => (
+                                        <SelectItem key={type.id} value={type.id}>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{type.name}</span>
+                                                <span className="text-xs text-gray-500">
+                                                    {getEquipmentTypeHierarchy(type, true).fullPath}
+                                                </span>
+                                            </div>
+                                        </SelectItem>
+                                    ))
+                                )}
+                            </SelectContent>
+                        </Select>
+                        {equipmentTypes?.length === 0 && (
+                            <p className="text-sm text-orange-600 mt-1">
+                                No equipment types found. Please create equipment types first.
+                            </p>
+                        )}
                     </div>
                     <div>
                         <Label htmlFor="brand">Brand</Label>
@@ -97,7 +125,7 @@ export function CreateEquipmentDialog({ open, onOpenChange }: CreateEquipmentDia
                         </Button>
                         <Button
                             type="submit"
-                            disabled={createEquipment.isPending}
+                            disabled={createEquipment.isPending || isLoadingTypes}
                             className="bg-blue-200 hover:bg-blue-700 text-white"
                         >
                             {createEquipment.isPending ? 'Creating...' : 'Create Equipment'}
