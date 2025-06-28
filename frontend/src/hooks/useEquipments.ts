@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { graphqlRequest } from '../lib/graphql-client';
-import type { CreateEquipmentInput, Equipment } from '@/types/equipment';
+import type { CreateEquipmentInput, Equipment, UpdateEquipmentInput } from '@/types/equipment';
 
 const GET_EQUIPMENTS = `
   query GetEquipments {

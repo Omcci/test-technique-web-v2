@@ -32,3 +32,11 @@ export interface CreateEquipmentTypeInput {
     level?: number;
     parentId?: string;
 }
+
+export interface UpdateEquipmentInput {
+    id: string;
+    name?: string;
+    equipmentTypeId?: string;
+    brand?: string;
+    model?: string;
+}
