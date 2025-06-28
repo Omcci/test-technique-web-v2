@@ -62,7 +62,7 @@ export function CreateEquipmentDialog({ open, onOpenChange }: CreateEquipmentDia
                         />
                     </div>
                     <div>
-                        <Label htmlFor="equipmentType">Equipment Type</Label>
+                        <Label htmlFor="equipmentType" className="text-sm font-medium mb-2">Equipment Type</Label>
                         <Select
                             value={formData.equipmentTypeId}
                             onValueChange={(value) => setFormData({ ...formData, equipmentTypeId: value })}
@@ -126,7 +126,7 @@ export function CreateEquipmentDialog({ open, onOpenChange }: CreateEquipmentDia
                         <Button
                             type="submit"
                             disabled={createEquipment.isPending || isLoadingTypes}
-                            className="bg-blue-200 hover:bg-blue-700 text-white"
+                            className="bg-primary hover:bg-primary/90 text-white"
                         >
                             {createEquipment.isPending ? 'Creating...' : 'Create Equipment'}
                         </Button>

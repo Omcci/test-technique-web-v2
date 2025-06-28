@@ -12,12 +12,10 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen min-w-screen bg-gray-50">
+      <div className="min-h-screen bg-background text-foreground p-4">
         <div className="w-full px-4 py-8">
-          <div className="max-w-6xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              Equipment Management
-            </h1>
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-3xl font-bold mb-6">Equipment Management</h1>
             <EquipmentList onAddEquipment={() => setIsCreateDialogOpen(true)} />
             <CreateEquipmentDialog
               open={isCreateDialogOpen}
