@@ -10,6 +10,26 @@ const GET_EQUIPMENTS = `
       brand
       model
       equipmentTypeId
+      equipmentType {
+        id
+        name
+        level
+        parent {
+          id
+          name
+          level
+          parent {
+            id
+            name
+            level
+            parent {
+              id
+              name
+              level
+            }
+          }
+        }
+      }
       createdAt
       updatedAt
     }
@@ -24,6 +44,26 @@ const CREATE_EQUIPMENT = `
       brand
       model
       equipmentTypeId
+      equipmentType {
+        id
+        name
+        level
+        parent {
+          id
+          name
+          level
+          parent {
+            id
+            name
+            level
+            parent {
+              id
+              name
+              level
+            }
+          }
+        }
+      }
       createdAt
       updatedAt
     }
@@ -31,25 +71,25 @@ const CREATE_EQUIPMENT = `
 `;
 
 export function useEquipments() {
-    return useQuery({
-        queryKey: ['equipments'],
-        queryFn: async (): Promise<Equipment[]> => {
-            const data = await graphqlRequest(GET_EQUIPMENTS);
-            return data.equipments;
-        },
-    });
+  return useQuery({
+    queryKey: ['equipments'],
+    queryFn: async (): Promise<Equipment[]> => {
+      const data = await graphqlRequest(GET_EQUIPMENTS);
+      return data.equipments;
+    },
+  });
 }
 
 export function useCreateEquipment() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (input: CreateEquipmentInput): Promise<Equipment> => {
-            const data = await graphqlRequest(CREATE_EQUIPMENT, { input });
-            return data.createEquipment;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['equipments'] });
-        },
-    });
+  return useMutation({
+    mutationFn: async (input: CreateEquipmentInput): Promise<Equipment> => {
+      const data = await graphqlRequest(CREATE_EQUIPMENT, { input });
+      return data.createEquipment;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipments'] });
+    },
+  });
 }
