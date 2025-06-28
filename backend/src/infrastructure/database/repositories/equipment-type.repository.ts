@@ -23,8 +23,15 @@ export class EquipmentTypeRepository implements IEquipmentTypeRepository {
     async findAll(): Promise<EquipmentType[]> {
         const equipmentTypes = await this.prisma.equipmentType.findMany({
             include: {
-                parent: true,
-                children: true,
+                parent: {
+                    include: {
+                        parent: {
+                            include: {
+                                parent: true,
+                            },
+                        },
+                    },
+                }
             },
         });
 

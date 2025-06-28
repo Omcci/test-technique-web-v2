@@ -27,11 +27,20 @@ export class EquipmentRepository implements IEquipmentRepository {
 
     async findAll(): Promise<Equipment[]> {
         const equipments = await this.prisma.equipment.findMany({
-            orderBy: {
-                createdAt: 'desc'
-            },
             include: {
-                equipmentType: true,
+                equipmentType: {
+                    include: {
+                        parent: {
+                            include: {
+                                parent: {
+                                    include: {
+                                        parent: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             },
         })
         return equipments.map((equipment: Equipment) => new Equipment(equipment));
