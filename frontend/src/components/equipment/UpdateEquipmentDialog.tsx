@@ -10,10 +10,8 @@ import {
     DialogTitle,
 } from '../ui/dialog';
 import { toast } from "sonner"
-import { useEquipmentTypes } from '@/hooks/useEquipmentTypes';
-import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from '../ui/select';
-import { getEquipmentTypeHierarchy } from '@/lib/utils';
 import type { Equipment } from '@/types/equipment';
+import { CascadeEquipmentTypeSelect } from './CascadeEquipmentTypeSelect';
 
 interface UpdateEquipmentDialogProps {
     open: boolean;
@@ -31,7 +29,6 @@ export function UpdateEquipmentDialog({ open, onOpenChange, equipment }: UpdateE
     });
 
     const updateEquipment = useUpdateEquipment();
-    const { data: equipmentTypes, isLoading: isLoadingTypes } = useEquipmentTypes();
 
     useEffect(() => {
         if (equipment) {
@@ -72,37 +69,15 @@ export function UpdateEquipmentDialog({ open, onOpenChange, equipment }: UpdateE
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             required
                             className="mt-2"
+                            maxLength={255}
+                            minLength={2}
                         />
                     </div>
-                    <div>
-                        <Label htmlFor="equipmentType">Equipment Type</Label>
-                        <Select
-                            value={formData.equipmentTypeId}
-                            onValueChange={(value) => setFormData({ ...formData, equipmentTypeId: value })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select equipment type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {isLoadingTypes ? (
-                                    <SelectItem value="loading" disabled>Loading...</SelectItem>
-                                ) : equipmentTypes?.length === 0 ? (
-                                    <SelectItem value="no-data" disabled>No equipment types available</SelectItem>
-                                ) : (
-                                    equipmentTypes?.map((type) => (
-                                        <SelectItem key={type.id} value={type.id}>
-                                            <div className="flex flex-col">
-                                                <span className="font-medium">{type.name}</span>
-                                                <span className="text-xs text-gray-500">
-                                                    {getEquipmentTypeHierarchy(type, true).fullPath}
-                                                </span>
-                                            </div>
-                                        </SelectItem>
-                                    ))
-                                )}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <CascadeEquipmentTypeSelect
+                        value={formData.equipmentTypeId}
+                        onValueChange={(value) => setFormData({ ...formData, equipmentTypeId: value })}
+                        disabled={updateEquipment.isPending}
+                    />
                     <div>
                         <Label htmlFor="brand">Brand</Label>
                         <Input
@@ -111,6 +86,8 @@ export function UpdateEquipmentDialog({ open, onOpenChange, equipment }: UpdateE
                             onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                             required
                             className="mt-2"
+                            maxLength={255}
+                            minLength={2}
                         />
                     </div>
                     <div>
@@ -121,6 +98,8 @@ export function UpdateEquipmentDialog({ open, onOpenChange, equipment }: UpdateE
                             onChange={(e) => setFormData({ ...formData, model: e.target.value })}
                             required
                             className="mt-2"
+                            maxLength={255}
+                            minLength={2}
                         />
                     </div>
                     <div className="flex justify-end space-x-2">
@@ -133,7 +112,7 @@ export function UpdateEquipmentDialog({ open, onOpenChange, equipment }: UpdateE
                         </Button>
                         <Button
                             type="submit"
-                            disabled={updateEquipment.isPending || isLoadingTypes}
+                            disabled={updateEquipment.isPending}
                         >
                             {updateEquipment.isPending ? 'Updating...' : 'Update Equipment'}
                         </Button>

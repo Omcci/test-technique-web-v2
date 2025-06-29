@@ -13,7 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Plus, Loader2, Search, Filter, Edit, Trash2 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { getEquipmentTypeHierarchy } from '../../lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { getEquipmentTypeHierarchy, truncateText } from '../../lib/utils';
 import { CreateEquipmentDialog } from './CreateEquipmentDialog';
 import { UpdateEquipmentDialog } from './UpdateEquipmentDialog';
 import type { Equipment } from '@/types/equipment';
@@ -210,7 +211,20 @@ export function EquipmentList() {
 
                                 return (
                                     <TableRow key={equipment.id}>
-                                        <TableCell className="font-medium">{equipment.name}</TableCell>
+                                        <TableCell className="font-medium">
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="cursor-help">
+                                                            {truncateText(equipment.name)}
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>{equipment.name}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </TableCell>
                                         <TableCell>
                                             {hierarchy.domain ? (
                                                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
@@ -247,8 +261,34 @@ export function EquipmentList() {
                                                 <span className="text-gray-500">-</span>
                                             )}
                                         </TableCell>
-                                        <TableCell>{equipment.brand}</TableCell>
-                                        <TableCell>{equipment.model}</TableCell>
+                                        <TableCell>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="cursor-help">
+                                                            {truncateText(equipment.brand)}
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>{equipment.brand}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </TableCell>
+                                        <TableCell>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="cursor-help">
+                                                            {truncateText(equipment.model)}
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>{equipment.model}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </TableCell>
                                         <TableCell>
                                             {new Date(equipment.createdAt).toLocaleDateString()}
                                         </TableCell>
