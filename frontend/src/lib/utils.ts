@@ -1,3 +1,4 @@
+import type { AIDetectionResult } from "@/hooks/useAIDetection";
 import type { EquipmentType } from "@/types/equipment";
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
@@ -51,3 +52,40 @@ export function getEquipmentTypeHierarchy(equipmentType: EquipmentType, includeF
   return result;
 }
 
+export const findEquipmentTypeIdFromHierarchy = (result: AIDetectionResult, equipmentTypes: EquipmentType[]): string => {
+  if (!equipmentTypes) return '';
+
+  // Find the deepest level that was detected
+  if (result.subcategory) {
+    const targetType = equipmentTypes.find(type =>
+      type.level === 4 &&
+      type.name === result.subcategory &&
+      type.parent?.name === result.category &&
+      type.parent?.parent?.name === result.type &&
+      type.parent?.parent?.parent?.name === result.domain
+    );
+    return targetType?.id || '';
+  } else if (result.category) {
+    const targetType = equipmentTypes.find(type =>
+      type.level === 3 &&
+      type.name === result.category &&
+      type.parent?.name === result.type &&
+      type.parent?.parent?.name === result.domain
+    );
+    return targetType?.id || '';
+  } else if (result.type) {
+    const targetType = equipmentTypes.find(type =>
+      type.level === 2 &&
+      type.name === result.type &&
+      type.parent?.name === result.domain
+    );
+    return targetType?.id || '';
+  } else if (result.domain) {
+    const targetType = equipmentTypes.find(type =>
+      type.level === 1 &&
+      type.name === result.domain
+    );
+    return targetType?.id || '';
+  }
+  return '';
+};

@@ -3,14 +3,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from '../ui/label';
 import { useEquipmentTypes } from '@/hooks/useEquipmentTypes';
 import { getEquipmentTypeHierarchy } from '@/lib/utils';
+import { Sparkles } from 'lucide-react';
 
 interface CascadeEquipmentTypeSelectProps {
     value: string;
     onValueChange: (value: string) => void;
     disabled?: boolean;
+    isAIGenerated?: boolean;
 }
 
-export function CascadeEquipmentTypeSelect({ value, onValueChange, disabled }: CascadeEquipmentTypeSelectProps) {
+export function CascadeEquipmentTypeSelect({ value, onValueChange, disabled, isAIGenerated }: CascadeEquipmentTypeSelectProps) {
     const { data: equipmentTypes, isLoading } = useEquipmentTypes();
 
     const [selectedDomain, setSelectedDomain] = useState<string>('');
@@ -199,10 +201,20 @@ export function CascadeEquipmentTypeSelect({ value, onValueChange, disabled }: C
             )}
             {(selectedDomain || selectedType || selectedCategory || selectedSubcategory) && (
                 <div className="text-sm text-gray-500 p-2 bg-gray-50 rounded-md">
-                    <span className="font-medium">Selected: </span>
-                    {[selectedDomain, selectedType, selectedCategory, selectedSubcategory]
-                        .filter(Boolean)
-                        .join(' → ')}
+                    <div className="flex items-center justify-between">
+                        <span className="font-medium">Selected: </span>
+                        {isAIGenerated && (
+                            <div className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded-full text-xs">
+                                <Sparkles className="h-3 w-3" />
+                                <span>AI Generated</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="mt-1">
+                        {[selectedDomain, selectedType, selectedCategory, selectedSubcategory]
+                            .filter(Boolean)
+                            .join(' → ')}
+                    </div>
                 </div>
             )}
         </div>
