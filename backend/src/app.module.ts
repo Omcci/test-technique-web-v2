@@ -9,6 +9,8 @@ import { PrismaService } from './infrastructure/database/prisma.service';
 import { EquipmentTypeResolver } from './infrastructure/graphql/resolvers/equipment-type.resolver';
 import { EquipmentTypeService } from './application/services/equipment-type.service';
 import { EquipmentTypeRepository } from './infrastructure/database/repositories/equipment-type.repository';
+import { AIDetectionResolver } from './infrastructure/graphql/resolvers/ai-detection.resolver';
+import { AIDetectionService } from './application/services/ai-detection.service';
 
 @Module({
     imports: [
@@ -21,10 +23,12 @@ import { EquipmentTypeRepository } from './infrastructure/database/repositories/
     providers: [
         EquipmentResolver,
         EquipmentTypeResolver,
+        AIDetectionResolver,
         EquipmentService,
         EquipmentTypeService,
         EquipmentRepository,
         EquipmentTypeRepository,
+        AIDetectionService,
         PrismaService,
         { provide: 'IEquipmentRepository', useExisting: EquipmentRepository },
         { provide: 'IEquipmentTypeRepository', useExisting: EquipmentTypeRepository },

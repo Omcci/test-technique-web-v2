@@ -32,6 +32,7 @@ type Equipment {
 type Query {
   equipments: [Equipment!]!
   equipmentTypes: [EquipmentType!]!
+  detectEquipmentType(name: String!, brand: String!, model: String!, description: String): String!
 }
 
 type Mutation {
