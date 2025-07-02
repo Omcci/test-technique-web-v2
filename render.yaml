@@ -1,19 +1,12 @@
 services:
-  # Backend Service (API + Frontend)
+  # Backend Service
   - type: web
-    name: equipment-app
+    name: equipment-backend
     env: node
     plan: free
-    sourceDir: .
-    buildCommand: |
-      cd backend
-      npm install
-      npm run build
-      cd ../frontend
-      npm install
-      npm run build
-      cd ../backend
-    startCommand: cd backend && npm run start:prod
+    sourceDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
@@ -23,6 +16,18 @@ services:
           property: connectionString
       - key: PORT
         value: 10000
+
+  # Frontend Service
+  - type: web
+    name: equipment-frontend
+    env: static
+    plan: free
+    sourceDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://equipment-backend.onrender.com
 
 databases:
   - name: equipment-db
