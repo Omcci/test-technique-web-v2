@@ -253,12 +253,127 @@ filterDomain = 'IT'
 domainMatch = false || hierarchy.domain === 'IT' // Vérification réelle
 ```
 
-### ⚡ **Optimisations Techniques**
+### ⚡ **Optimisations Techniques Détaillées**
 
-1. **Pré-calcul de hiérarchie** : Une fois par équipement vs 4 fois par filtre
-2. **Court-circuit logique** : `||` arrête dès qu'une condition est vraie
-3. **useMemo avec dépendances** : Pas de recalcul inutile
-4. **Transformation fonctionnelle** : Pipeline clair map() → filter()
+#### **1. 🔄 Pré-calcul de Hiérarchie - Explication Complète**
+
+**Le Problème Sans Pré-calcul :**
+```typescript
+// ❌ INEFFICACE : Calcul répété pour chaque filtre
+const filteredEquipments = equipments.filter((equipment) => {
+    // Pour CHAQUE équipement, on recalcule la hiérarchie 4 FOIS !
+    const hierarchy1 = getEquipmentTypeHierarchy(equipment.equipmentType); // 1ère fois
+    const domainMatch = hierarchy1.domain === filterDomain;
+    
+    const hierarchy2 = getEquipmentTypeHierarchy(equipment.equipmentType); // 2ème fois (même calcul!)
+    const typeMatch = hierarchy2.type === filterType;
+    
+    const hierarchy3 = getEquipmentTypeHierarchy(equipment.equipmentType); // 3ème fois (même calcul!)
+    const categoryMatch = hierarchy3.category === filterCategory;
+    
+    const hierarchy4 = getEquipmentTypeHierarchy(equipment.equipmentType); // 4ème fois (même calcul!)
+    const subcategoryMatch = hierarchy4.subcategory === filterSubcategory;
+    
+    return domainMatch && typeMatch && categoryMatch && subcategoryMatch;
+});
+```
+
+**La Solution Avec Pré-calcul :**
+```typescript
+// ✅ EFFICACE : Calcul une seule fois par équipement
+const filteredEquipments = equipments
+    .map(equipment => ({
+        ...equipment,
+        // 🎯 PRÉ-CALCUL : Une seule fois ici
+        hierarchy: getEquipmentTypeHierarchy(equipment.equipmentType)
+    }))
+    .filter((enrichedEquipment) => {
+        // 🚀 RÉUTILISATION : Pas de nouveau calcul, juste lecture
+        const { hierarchy } = enrichedEquipment;
+        
+        const domainMatch = hierarchy.domain === filterDomain;      // Lecture rapide
+        const typeMatch = hierarchy.type === filterType;            // Lecture rapide
+        const categoryMatch = hierarchy.category === filterCategory; // Lecture rapide
+        const subcategoryMatch = hierarchy.subcategory === filterSubcategory; // Lecture rapide
+        
+        return domainMatch && typeMatch && categoryMatch && subcategoryMatch;
+    });
+```
+
+**Qu'est-ce que `getEquipmentTypeHierarchy()` fait exactement ?**
+```typescript
+// Exemple avec un équipement "Serveur Dell"
+const equipmentType = {
+    id: "server-dell-poweredge",
+    name: "PowerEdge R740",
+    level: 4, // Sous-catégorie
+    parent: {
+        name: "Serveur", 
+        level: 3, // Catégorie
+        parent: {
+            name: "Hardware",
+            level: 2, // Type
+            parent: {
+                name: "IT",
+                level: 1 // Domaine
+            }
+        }
+    }
+};
+
+// Cette fonction "remonte" la chaîne des parents
+function getEquipmentTypeHierarchy(equipmentType) {
+    // Parcours : PowerEdge R740 → Serveur → Hardware → IT
+    return {
+        domain: "IT",           // Niveau 1 (racine)
+        type: "Hardware",       // Niveau 2
+        category: "Serveur",    // Niveau 3
+        subcategory: "PowerEdge R740" // Niveau 4 (feuille)
+    };
+}
+```
+
+**Calcul de Performance :**
+```
+🔢 EXEMPLE CONCRET : 1000 équipements, 4 filtres
+
+❌ Sans pré-calcul :
+1000 équipements × 4 filtres × (remontée de 4 niveaux)
+= 1000 × 4 × 4 = 16 000 opérations de parcours
+
+✅ Avec pré-calcul :
+1000 équipements × 1 calcul × (remontée de 4 niveaux) + 1000 × 4 lectures
+= 1000 × 4 + 4000 = 8 000 opérations
+
+🚀 GAIN : 50% de réduction d'opérations !
+```
+
+#### **2. ⚡ Court-circuit Logique**
+
+```typescript
+// 🎛️ Comment fonctionne le court-circuit
+const domainMatch = filterDomain === 'all-domains' || hierarchy.domain === filterDomain;
+//                  ↑ PREMIER TEST                    ↑ SECOND TEST
+//                  Si vrai, pas besoin du second     Exécuté seulement si premier = faux
+```
+
+#### **3. 🧠 useMemo avec Dépendances**
+
+```typescript
+// ✅ Recalcul intelligent
+const filterOptions = useMemo(() => {
+    // Calcul coûteux uniquement si equipments change
+}, [equipments]); // 🎯 Dépendance unique
+```
+
+#### **4. 🔄 Transformation Fonctionnelle**
+
+```typescript
+// Pipeline clair et lisible
+equipments
+  .map(enrichWithHierarchy)    // Étape 1 : Enrichissement
+  .filter(applyAllFilters)     // Étape 2 : Filtrage
+```
 
 ### 📊 **Performance - Exemple Concret**
 
@@ -411,10 +526,182 @@ export interface IEquipmentRepository {
 }
 ```
 
-**Points clés :**
-- Aucune dépendance externe (pas d'import de Prisma, NestJS, etc.)
-- Logique métier pure et règles de validation
-- Interfaces définissent les contrats sans implémentation
+### 🏛️ **Pourquoi "Contrats" pour les Interfaces ?**
+
+**Une interface = un contrat commercial** entre deux parties.
+
+**Exemple concret dans votre projet d'équipements :**
+
+```typescript
+// 📋 CONTRAT (Interface) - backend/src/domain/repositories/equipment.repository.interface.ts
+export interface IEquipmentRepository {
+    // 📝 CLAUSE 1 : "Tu dois pouvoir sauvegarder un équipement"
+    save(equipment: Equipment): Promise<Equipment>;
+    
+    // 📝 CLAUSE 2 : "Tu dois pouvoir lister tous les équipements"  
+    findAll(): Promise<Equipment[]>;
+    
+    // 📝 CLAUSE 3 : "Tu dois pouvoir supprimer par ID"
+    delete(id: string): Promise<boolean>;
+}
+```
+
+**🤝 Qui signe ce contrat ?**
+
+**Partie 1 : Le Domain (client)**
+```typescript
+class EquipmentService {
+    constructor(private repository: IEquipmentRepository) {
+        // 🗣️ "J'ai besoin de quelqu'un qui respecte ce contrat"
+        // "Je me fiche de savoir COMMENT tu le fais"
+        // "L'important c'est que tu respectes les clauses"
+    }
+    
+    async create(input) {
+        const equipment = Equipment.create(input);
+        // 📞 "Je t'appelle selon le contrat"
+        return this.repository.save(equipment);
+    }
+}
+```
+
+**Partie 2 : L'Infrastructure (fournisseur)**
+```typescript
+class EquipmentRepository implements IEquipmentRepository {
+    // ✍️ "Je signe ce contrat et m'engage à le respecter"
+    
+    async save(equipment: Equipment): Promise<Equipment> {
+        // 🔧 "Voici COMMENT je respecte la clause 1"
+        return this.prisma.equipment.create({...});
+    }
+    
+    async findAll(): Promise<Equipment[]> {
+        // 🔧 "Voici COMMENT je respecte la clause 2"
+        return this.prisma.equipment.findMany({...});
+    }
+    
+    async delete(id: string): Promise<boolean> {
+        // 🔧 "Voici COMMENT je respecte la clause 3"
+        await this.prisma.equipment.delete({where: {id}});
+        return true;
+    }
+}
+```
+
+**🏛️ Avantages du "Contrat" :**
+
+1. **📝 Obligations claires** : Chaque partie sait ce qu'elle doit faire
+2. **🔄 Interchangeabilité** : Si PostgreSQL ne convient plus, je prends MongoDB, tant qu'il signe le même contrat
+3. **🧪 Tests faciles** : Je peux créer un "faux contractant" pour les tests
+4. **🛡️ Protection** : Le domain ne peut utiliser que ce qui est dans le contrat
+
+**Exemple d'interchangeabilité :**
+```typescript
+// 📝 Même contrat, implémentation différente
+class FileEquipmentRepository implements IEquipmentRepository {
+    async save(equipment: Equipment): Promise<Equipment> {
+        // 📁 Sauvegarde dans un fichier JSON au lieu d'une BDD
+        const data = JSON.stringify(equipment);
+        await fs.writeFile(`equipments/${equipment.id}.json`, data);
+        return equipment;
+    }
+    
+    async findAll(): Promise<Equipment[]> {
+        // 📁 Lecture de tous les fichiers JSON
+        const files = await fs.readdir('equipments/');
+        return files.map(file => JSON.parse(fs.readFileSync(file)));
+    }
+}
+
+// 🔄 Changement de configuration = changement d'implémentation
+// Aucun code métier à modifier !
+{ provide: 'IEquipmentRepository', useClass: FileEquipmentRepository }
+```
+
+### 🏛️ **Couche Domain - Explications Détaillées**
+
+**Points clés expliqués :**
+
+#### **1. 🚫 Aucune Dépendance Externe**
+
+```typescript
+// ✅ CORRECT - Domain pur
+import { randomUUID } from 'crypto';  // ← Standard Node.js OK
+
+export class Equipment {
+    static create(data: {...}): Equipment {
+        // Logique métier pure
+    }
+}
+
+// ❌ INCORRECT - Domain pollué
+import { PrismaService } from '../../infrastructure/...';  // ← Interdit !
+import { GraphQLObjectType } from 'graphql';              // ← Interdit !
+
+export class Equipment {
+    constructor(private prisma: PrismaService) {} // ❌ Dépendance technique !
+}
+```
+
+**Pourquoi c'est important ?**
+- **🧪 Tests** : Domain testable sans base de données
+- **🔄 Portabilité** : Domain réutilisable dans d'autres projets  
+- **🛡️ Stabilité** : Domain ne casse pas si on change de techno
+
+#### **2. 🎯 Logique Métier Pure et Règles de Validation**
+
+```typescript
+// backend/src/domain/entities/equipment.entity.ts
+export class Equipment {
+    static create(data: {
+        name: string;
+        equipmentTypeId: string;
+        brand: string;
+        model: string;
+    }): Equipment {
+        // 🔒 RÈGLE MÉTIER 1 : Nom obligatoire et assez long
+        if (!data.name || data.name.length < 2) {
+            throw new Error('Equipment name must be at least 2 characters');
+        }
+        
+        // 🔒 RÈGLE MÉTIER 2 : Marque obligatoire  
+        if (!data.brand || data.brand.trim().length === 0) {
+            throw new Error('Brand is required');
+        }
+        
+        // 🔒 RÈGLE MÉTIER 3 : Type d'équipement obligatoire
+        if (!data.equipmentTypeId) {
+            throw new Error('Equipment type is required');
+        }
+        
+        // 🎯 GÉNÉRATION automatique des métadonnées
+        return new Equipment({
+            ...data,
+            id: randomUUID(),           // ID unique généré
+            createdAt: new Date(),      // Timestamp de création
+            updatedAt: new Date(),      // Timestamp de modification
+        });
+    }
+    
+    // 🔧 MÉTHODE MÉTIER : Mise à jour avec règles
+    updateDetails(newData: Partial<{name: string; brand: string; model: string}>): void {
+        if (newData.name && newData.name.length < 2) {
+            throw new Error('Name too short');
+        }
+        
+        if (newData.name) this.name = newData.name;
+        if (newData.brand) this.brand = newData.brand;
+        if (newData.model) this.model = newData.model;
+        
+        this.updatedAt = new Date(); // 🕐 Mise à jour automatique du timestamp
+    }
+}
+```
+
+**Ces règles métier sont dans le Domain car :**
+- ✅ **Toujours vraies** : Peu importe d'où viennent les données (API, import CSV, migration...)
+- ✅ **Indépendantes** : Pas liées à une technologie particulière
+- ✅ **Centralisées** : Un seul endroit à maintenir
 
 #### 2. Couche Application 🟡
 
@@ -444,9 +731,18 @@ export class EquipmentService {
 - **Injection de dépendances** via interfaces
 - **Coordination** entre domaine et infrastructure
 
-#### 3. Couche Infrastructure 🔴
+#### 3. Couche Infrastructure 🔴 - Explications Détaillées
 
-**Implémentation Repository :**
+**🎯 Rôle de la Couche Infrastructure**
+
+La couche Infrastructure est comme le **"service technique"** d'un hôtel. Dans votre projet d'équipements, elle s'occupe de tous les **détails techniques** que le métier n'a pas besoin de connaître :
+
+- **🗃️ Base de données** : Comment sauvegarder les équipements (PostgreSQL, MongoDB, fichier...)
+- **🌐 API** : Comment exposer les données (GraphQL, REST, WebSocket...)
+- **📧 Email** : Comment envoyer des notifications
+- **🔒 Authentification** : Comment vérifier les utilisateurs
+
+**Implémentation Repository Détaillée :**
 ```typescript
 // backend/src/infrastructure/database/repositories/equipment.repository.ts
 @Injectable()
@@ -454,37 +750,143 @@ export class EquipmentRepository implements IEquipmentRepository {
     constructor(private prisma: PrismaService) {}
 
     async findAll(): Promise<Equipment[]> {
+        // 🔧 DÉTAIL TECHNIQUE : Requête SQL spécifique à Prisma
         const equipments = await this.prisma.equipment.findMany({
             include: {
                 equipmentType: {
                     include: {
-                        parent: {
+                        parent: {                           // Niveau 2
                             include: {
-                                parent: { include: { parent: true } }
+                                parent: {                   // Niveau 3
+                                    include: { parent: true } // Niveau 4
+                                }
                             }
                         }
                     }
                 }
             }
         });
+        
+        // 🎯 TRANSFORMATION : Données Prisma → Entités Domain
         return equipments.map(equipment => new Equipment(equipment));
+    }
+
+    async save(equipment: Equipment): Promise<Equipment> {
+        // 🔄 TRANSFORMATION : Entité Domain → Format Prisma
+        const prismaData = {
+            id: equipment.id,
+            name: equipment.name,
+            brand: equipment.brand,
+            model: equipment.model,
+            equipmentTypeId: equipment.equipmentTypeId,
+            createdAt: equipment.createdAt,
+            updatedAt: equipment.updatedAt
+        };
+
+        // 🗃️ PERSISTANCE : Sauvegarde réelle en base
+        const saved = await this.prisma.equipment.create({
+            data: prismaData,
+            include: { equipmentType: true }
+        });
+
+        // 🎯 RETOUR : Conversion vers entité Domain
+        return new Equipment(saved);
     }
 }
 ```
 
-**Configuration d'Injection :**
+**🔗 L'Inversion de Dépendance - Pourquoi ce nom ?**
+
+**Inversion = "Retournement"** du sens normal des dépendances.
+
+**❌ Dépendance NORMALE (problématique) :**
+```typescript
+// Le SERVICE dépend directement de l'IMPLÉMENTATION
+class EquipmentService {
+    private repository: EquipmentRepository; // 🔴 Dépendance directe !
+    
+    constructor() {
+        this.repository = new EquipmentRepository(); // 🔴 Couplage fort !
+    }
+}
+```
+*Problème : Si je veux changer de base de données, je dois modifier le service !*
+
+**✅ Dépendance INVERSÉE (solution) :**
+```typescript
+// Le SERVICE dépend de l'INTERFACE, pas de l'implémentation
+class EquipmentService {
+    private repository: IEquipmentRepository; // ✅ Dépendance sur l'interface !
+    
+    constructor(@Inject('IEquipmentRepository') repo: IEquipmentRepository) {
+        this.repository = repo; // ✅ Injection externe !
+    }
+}
+```
+*Solution : Le service ne connaît que le "contrat", pas l'implémentation !*
+
+**Configuration d'Injection - Le "Chef d'Orchestre" :**
 ```typescript
 // backend/src/app.module.ts
 @Module({
     providers: [
-        EquipmentService,
-        EquipmentRepository,
-        PrismaService,
-        // 🔗 INVERSION DE DÉPENDANCE
-        { provide: 'IEquipmentRepository', useExisting: EquipmentRepository },
+        EquipmentService,           // 🟡 Le service qui utilise
+        EquipmentRepository,        // 🔴 L'implémentation concrète
+        PrismaService,              // 🔧 Les outils techniques
+        
+        // 🎭 LA MAGIE : Dire à NestJS "quand quelqu'un demande 
+        // IEquipmentRepository, donne-lui EquipmentRepository"
+        { 
+            provide: 'IEquipmentRepository',    // 🎯 Ce qui est demandé (interface)
+            useExisting: EquipmentRepository    // 🔧 Ce qui est fourni (implémentation)
+        },
     ],
 })
 export class AppModule {}
+```
+
+**🏭 Exemple Concret d'Inversion**
+
+Imaginez que vous gérez une **flotte d'équipements** et que vous voulez changer de système de stockage :
+
+```typescript
+// 🎯 AVANT : Impossible de changer facilement
+class EquipmentService {
+    private repo = new PostgreSQLRepository(); // 🔒 Figé !
+    
+    async create(data) {
+        return this.repo.save(data); // PostgreSQL obligatoire
+    }
+}
+
+// 🚀 APRÈS : Changement facile
+class EquipmentService {
+    constructor(@Inject('IEquipmentRepository') private repo: IEquipmentRepository) {}
+    
+    async create(data) {
+        return this.repo.save(data); // Marche avec n'importe quelle implémentation !
+    }
+}
+
+// 🔄 Pour changer de MongoDB à PostgreSQL :
+// AVANT : Modifier 15 fichiers de services
+// APRÈS : Modifier 1 ligne de configuration !
+{
+    provide: 'IEquipmentRepository',
+    useClass: MongoDBRepository // ← Changement ici uniquement !
+}
+```
+
+**🧪 Avantage pour les Tests**
+```typescript
+// 🎭 Mock facile grâce à l'inversion
+const mockRepository = {
+    save: jest.fn().mockResolvedValue(mockEquipment),
+    findAll: jest.fn().mockResolvedValue([mockEquipment])
+};
+
+const service = new EquipmentService(mockRepository);
+// ✅ Test pur, sans vraie base de données !
 ```
 
 ### 🌊 **Flux de Données Détaillé - Exemple Concret**
@@ -522,7 +924,7 @@ mutation CreateEquipment {
    ▼
 3️⃣ 🟡 APPLICATION (Service)
    │ EquipmentService.create(input)
-   │ ↳ Orchestration du cas d'usage
+   │ ↳ 🎭 ORCHESTRATION DU CAS D'USAGE (voir explication détaillée ci-dessous)
    │ ↳ Appel à la logique métier
    │
    ▼
@@ -535,7 +937,7 @@ mutation CreateEquipment {
    ▼
 5️⃣ 🟡 APPLICATION (Service)
    │ equipmentRepository.save(equipment)
-   │ ↳ Appel via interface (Port)
+   │ ↳ 🚪 APPEL VIA INTERFACE (PORT) (voir explication détaillée ci-dessous)
    │
    ▼
 6️⃣ 🔴 INFRASTRUCTURE/Database (Repository)
@@ -554,6 +956,157 @@ mutation CreateEquipment {
    │ Database → Repository → Service → Resolver → Client
    │ ↳ Transformation à chaque couche
    │ ↳ Réponse GraphQL finale
+```
+
+### 🔍 **Explications Détaillées des Termes du Flux**
+
+#### **📦 Transformation en DTO - Qu'est-ce que c'est ?**
+
+**DTO = Data Transfer Object** = Objet qui transporte des données entre les couches.
+
+**Exemple concret dans votre projet :**
+```typescript
+// 🌐 Ce qui arrive du frontend (GraphQL)
+{
+  "input": {
+    "name": "Serveur Dell PowerEdge",
+    "brand": "Dell", 
+    "model": "PowerEdge R740",
+    "equipmentTypeId": "abc-123-server"
+  }
+}
+
+// 🎯 TRANSFORMATION 1 : GraphQL → DTO
+// backend/src/application/dto/create-equipment.input.ts
+export class CreateEquipmentInput {
+  @Field() name: string;
+  @Field() brand: string; 
+  @Field() model: string;
+  @Field() equipmentTypeId: string;
+}
+
+// 🎯 TRANSFORMATION 2 : DTO → Entité Domain
+const equipment = Equipment.create({
+  name: input.name,      // DTO → Domain
+  brand: input.brand,    // DTO → Domain
+  model: input.model,    // DTO → Domain
+  equipmentTypeId: input.equipmentTypeId
+});
+
+// 🎯 TRANSFORMATION 3 : Entité → Format Prisma
+const prismaData = {
+  id: equipment.id,
+  name: equipment.name,
+  brand: equipment.brand,
+  model: equipment.model,
+  equipment_type_id: equipment.equipmentTypeId // ← Nom de colonne différent !
+};
+```
+
+**Pourquoi ces transformations ?**
+- **🔒 Sécurité** : Valider les données à l'entrée
+- **🎯 Adaptation** : Chaque couche a ses propres besoins
+- **🛡️ Protection** : Le domaine ne connaît pas GraphQL ou SQL
+
+#### **🎭 Orchestration du Cas d'Usage - Explication Simple**
+
+**Orchestration = "Chef d'orchestre"** qui coordonne tous les musiciens.
+
+Dans votre cas, le service **coordonne** toutes les étapes pour **"créer un équipement"** :
+
+```typescript
+// backend/src/application/services/equipment.service.ts
+@Injectable()
+export class EquipmentService {
+    
+    async create(input: CreateEquipmentInput): Promise<Equipment> {
+        // 🎭 ORCHESTRATION = Coordonner 4 étapes :
+        
+        // 1️⃣ VALIDATION des données d'entrée
+        if (!input.name || input.name.length < 2) {
+            throw new Error('Nom requis');
+        }
+        
+        // 2️⃣ CRÉATION de l'entité métier (règles business)
+        const equipment = Equipment.create({
+            name: input.name,
+            brand: input.brand,
+            model: input.model,
+            equipmentTypeId: input.equipmentTypeId
+        });
+        
+        // 3️⃣ PERSISTANCE via repository
+        const savedEquipment = await this.equipmentRepository.save(equipment);
+        
+        // 4️⃣ OPTIONNEL : Actions supplémentaires
+        // await this.emailService.sendNotification('Nouvel équipement créé');
+        // await this.auditService.logCreation(savedEquipment);
+        
+        return savedEquipment;
+    }
+}
+```
+
+**Le service ne fait PAS le travail lui-même, il COORDONNE :**
+- Il ne valide pas → il demande au Domain de valider
+- Il ne sauvegarde pas → il demande au Repository de sauvegarder  
+- Il ne envoie pas d'email → il demande au EmailService d'envoyer
+
+**Analogie :** Comme un **chef de projet** qui ne code pas, mais coordonne les développeurs.
+
+#### **🚪 Appel via Interface (Port) - Concept Clé**
+
+**Port = Interface = Contrat** qui définit "quoi faire" sans dire "comment le faire".
+
+```typescript
+// 🚪 PORT (Interface) - Dans Domain
+interface IEquipmentRepository {
+    save(equipment: Equipment): Promise<Equipment>;    // QUOI faire
+    findAll(): Promise<Equipment[]>;                   // QUOI faire
+    delete(id: string): Promise<boolean>;              // QUOI faire
+    // ↑ Pas de détails sur COMMENT (SQL, MongoDB, fichier...)
+}
+
+// 🎭 SERVICE utilise le PORT (il ne connaît pas l'implémentation)
+class EquipmentService {
+    constructor(
+        @Inject('IEquipmentRepository') 
+        private repository: IEquipmentRepository  // ← Interface, pas classe !
+    ) {}
+    
+    async create(input: CreateEquipmentInput) {
+        const equipment = Equipment.create(input);
+        
+        // 🚪 APPEL VIA PORT : Le service ne sait pas si c'est
+        // PostgreSQL, MongoDB, fichier JSON ou API externe !
+        return this.repository.save(equipment);
+    }
+}
+
+// 🔧 ADAPTER (Implémentation) - Dans Infrastructure  
+class EquipmentRepository implements IEquipmentRepository {
+    async save(equipment: Equipment): Promise<Equipment> {
+        // COMMENT faire : ici c'est du Prisma/PostgreSQL
+        return this.prisma.equipment.create({...});
+    }
+}
+```
+
+**Avantage énorme :**
+```typescript
+// 🔄 Pour changer de PostgreSQL → MongoDB
+// Je change SEULEMENT l'implémentation, pas le service !
+
+class MongoEquipmentRepository implements IEquipmentRepository {
+    async save(equipment: Equipment): Promise<Equipment> {
+        // COMMENT faire : ici c'est du MongoDB
+        return this.mongoClient.collection('equipments').insertOne({...});
+    }
+}
+
+// Configuration
+{ provide: 'IEquipmentRepository', useClass: MongoEquipmentRepository }
+// ↑ Une seule ligne changée, tout le reste fonctionne !
 ```
 
 #### **🔄 Vision Schématique Complète**
