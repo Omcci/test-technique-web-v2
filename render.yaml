@@ -4,15 +4,16 @@ services:
     name: equipment-app
     env: node
     plan: free
-    sourceDir: backend
+    sourceDir: .
     buildCommand: |
+      cd backend
       npm install
       npm run build
       cd ../frontend
       npm install
       npm run build
       cd ../backend
-    startCommand: npm run start:prod
+    startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
