@@ -78,7 +78,7 @@ export function CreateEquipmentDialog({ open, onOpenChange }: CreateEquipmentDia
         e.preventDefault();
 
         try {
-            const { isAIGenerated, ...equipmentData } = formData;
+            const { isAIGenerated, description, ...equipmentData } = formData;
             await createEquipment.mutateAsync(equipmentData);
             toast.success('Equipment created successfully!');
             setFormData({ name: '', equipmentTypeId: '', brand: '', model: '', description: '', isAIGenerated: false });
