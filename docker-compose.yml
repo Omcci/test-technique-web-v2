@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: equipment-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - postgres
+    env_file:
+      - ./backend/.env
+    command: npm run start:dev
+    networks:
+      - equipment-network
+
+  frontend:
+    build: ./frontend
+    container_name: equipment-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: "http://localhost:3000"
+    command: npm run dev -- --host 0.0.0.0
+    networks:
+      - equipment-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: equipment-postgres
+    environment:
+      POSTGRES_DB: equipment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - equipment-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: equipment-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@equipment.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - equipment-network
+
+volumes:
+  postgres_data:
+
+networks:
+  equipment-network:
+    driver: bridge
