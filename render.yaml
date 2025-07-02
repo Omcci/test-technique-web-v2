@@ -4,9 +4,8 @@ services:
     name: equipment-backend
     env: node
     plan: free
-    sourceDir: backend
-    buildCommand: npm install && npm run build
-    startCommand: npm run start:prod
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
@@ -22,9 +21,8 @@ services:
     name: equipment-frontend
     env: static
     plan: free
-    sourceDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
         value: https://equipment-backend.onrender.com
